@@ -1,0 +1,45 @@
+<!DOCTYPE HTML>
+<html>
+  <head>
+    <script type="text/javascript">
+      function WebSocketTest()
+      {
+        if ("WebSocket" in window)
+        {
+          alert("WebSocket is supported by your Browser!");
+          // Let us open a web socket
+          var ws = new WebSocket("ws://localhost:12345/GetTemp");
+          ws.onopen = function()
+          {
+            alert("WS is opened...");
+          };
+          ws.onmessage = function (evt)
+          {
+            var received_msg = evt.data;
+            // uncomment next line if you want to get alerts on each message
+            alert("Message is received..." + received_msg);
+            document.getElementById("temp").innerHTML = "<pre>" +
+received_msg + "</pre>"
+            ws.send("Message received")
+          };
+          ws.onclose = function()
+          {
+            // websocket is closed.
+            alert("Connection is closed...");
+          };
+        }
+        else
+        {
+          // The browser doesn't support WebSocket
+          alert("WebSocket NOT supported by your Browser!");
+        }
+      }
+    </script>
+  </head>
+  <body>
+    <div id="temp">
+      <a href="javascript:WebSocketTest()">Run temperature
+sensor</a>
+    </div>
+  </body>
+</html>

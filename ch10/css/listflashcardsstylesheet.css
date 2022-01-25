@@ -1,0 +1,12 @@
+body {
+    background-color: lightgrey;
+}
+
+table {
+    background-color: lightslategray;
+    border: none;
+}
+
+td {
+    padding: 10px;
+}

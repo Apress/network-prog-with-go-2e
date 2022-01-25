@@ -1,0 +1,28 @@
+.english {
+  background-color: rgb(126, 126, 126);
+  padding: 5px;
+}
+
+.translations {
+  background-color: rgb(216, 206, 206);
+  padding: 5px;
+}
+
+.pinyin {
+  background-color: rgb(199, 201, 201);
+  padding: 5px;
+}
+
+.simplified {
+  background-color: rgb(143, 143, 143);
+  padding: 5px;
+}
+
+.traditional {
+  background-color: rgb(182, 179, 179);
+  padding: 5px;
+}
+
+body {
+  background-color: lightgrey;
+}

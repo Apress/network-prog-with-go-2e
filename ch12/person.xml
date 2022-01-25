@@ -1,0 +1,12 @@
+<person>
+  <name>
+    <family> Newmarch </family>
+    <personal> Jan </personal>
+  </name>
+  <email type="personal">
+    jan@newmarch.name
+  </email>
+  <email type="work">
+    j.newmarch@boxhill.edu.au
+  </email>
+</person>
