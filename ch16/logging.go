@@ -1,0 +1,23 @@
+package main
+
+import (
+	"github.com/gorilla/mux"
+	"github.com/gorilla/handlers"
+	"os"
+	"net/http"
+)
+
+func buildHandler(message string) func(http.ResponseWriter, *http.Request) {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		w.Write([]byte(message))
+	})
+}
+
+func main() {
+	r := mux.NewRouter()
+	r.HandleFunc("/", buildHandler("HomeHandler"))
+	r.HandleFunc("/products", buildHandler("ProductsHandler"))
+	r.HandleFunc("/articles", buildHandler("ArticlesHandler"))
+	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
+	http.ListenAndServe(":8080", loggedRouter)
+}
