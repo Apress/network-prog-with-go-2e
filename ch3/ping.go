@@ -3,34 +3,29 @@
 package main
 
 import (
-	"bytes"
 	"fmt"
-	"io"
+	"log"
 	"net"
 	"os"
 )
 
-// change this to my own IP address or leave set to 0.0.0.0
+// change this to your own IP address or leave set to 0.0.0.0
 const myIPAddress = "0.0.0.0"
 const ipv4HeaderSize = 20
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], "host")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "host")
 	}
 	localAddr, err := net.ResolveIPAddr("ip4", myIPAddress)
-	if err != nil {
-		fmt.Println("Resolution error", err.Error())
-		os.Exit(1)
-	}
+	checkError(err)
+
 	remoteAddr, err := net.ResolveIPAddr("ip4", os.Args[1])
-	if err != nil {
-		fmt.Println("Resolution error", err.Error())
-		os.Exit(1)
-	}
+	checkError(err)
+
 	conn, err := net.DialIP("ip4:icmp", localAddr, remoteAddr)
 	checkError(err)
+
 	var msg [512]byte
 	msg[0] = 8  // echo
 	msg[1] = 0  // code 0
@@ -41,10 +36,12 @@ func main() {
 	msg[6] = 0  // sequence[0]
 	msg[7] = 37 // sequence[1] (arbitrary)
 	len := 8
+
 	// now fix checksum bytes
 	check := checkSum(msg[0:len])
 	msg[2] = byte(check >> 8)
 	msg[3] = byte(check & 255)
+
 	// send the message
 	_, err = conn.Write(msg[0:len])
 	checkError(err)
@@ -53,6 +50,7 @@ func main() {
 		fmt.Print(" ", msg[n])
 	}
 	fmt.Println()
+
 	// receive a reply
 	size, err2 := conn.Read(msg[0:])
 	checkError(err2)
@@ -76,23 +74,6 @@ func checkSum(msg []byte) uint16 {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error: %s", err.Error())
 	}
-}
-func readFully(conn net.Conn) ([]byte, error) {
-	defer conn.Close()
-	result := bytes.NewBuffer(nil)
-	var buf [512]byte
-	for {
-		n, err := conn.Read(buf[0:])
-		result.Write(buf[0:n])
-		if err != nil {
-			if err == io.EOF {
-				break
-			}
-			return nil, err
-		}
-	}
-	return result.Bytes(), nil
 }

@@ -3,9 +3,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net"
-	"os"
 )
 
 func main() {
@@ -25,18 +24,14 @@ func handleClient(conn net.Conn) {
 	var buf [512]byte
 	for {
 		n, err := conn.Read(buf[0:])
-		if err != nil {
-			return
-		}
-		_, err2 := conn.Write(buf[0:n])
-		if err2 != nil {
-			return
-		}
+		checkError(err)
+
+		_, err = conn.Write(buf[0:n])
+		checkError(err)
 	}
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error: %s", err.Error())
 	}
 }

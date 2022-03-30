@@ -4,6 +4,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 	"strconv"
@@ -11,16 +12,14 @@ import (
 
 func main() {
 	if len(os.Args) != 4 {
-		fmt.Fprintf(os.Stderr, "Usage: %s dotted-ip-addr ones bits\n", os.Args[0])
-		os.Exit(1)
+		log.Fatalln("Usage: %s dotted-ip-addr ones bits\n", os.Args[0])
 	}
 	dotAddr := os.Args[1]
 	ones, _ := strconv.Atoi(os.Args[2])
 	bits, _ := strconv.Atoi(os.Args[3])
 	addr := net.ParseIP(dotAddr)
 	if addr == nil {
-		fmt.Println("Invalid address")
-		os.Exit(1)
+		log.Fatalln("nil Invalid address")
 	}
 	mask := net.CIDRMask(ones, bits)
 	computedOnes, computedBits := mask.Size()
@@ -30,5 +29,4 @@ func main() {
 		"\nLeading ones count is ", computedOnes,
 		"\nMask is (hex) ", mask.String(),
 		"\nNetwork is ", network.String())
-	os.Exit(0)
 }

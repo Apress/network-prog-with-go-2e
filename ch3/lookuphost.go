@@ -4,25 +4,23 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
 	"os"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s hostname\n", os.Args[0])
-		os.Exit(1)
+		log.Fatalln("Usage: %s hostname\n", os.Args[0])
 	}
 	name := os.Args[1]
 	cname, _ := net.LookupCNAME(name)
 	fmt.Println(cname)
 	addrs, err := net.LookupHost(cname)
 	if err != nil {
-		fmt.Println("Error: ", err.Error())
-		os.Exit(2)
+		log.Fatalln("Error: ", err.Error())
 	}
-	for _, s := range addrs {
-		fmt.Println(s)
+	for _, addr := range addrs {
+		fmt.Println(addr)
 	}
-	os.Exit(0)
 }

@@ -4,8 +4,8 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net"
-	"os"
 )
 
 func main() {
@@ -30,20 +30,15 @@ func handleClient(conn net.Conn) {
 	for {
 		// read up to 512 bytes
 		n, err := conn.Read(buf[0:])
-		if err != nil {
-			return
-		}
+		checkError(err)
 		fmt.Println(string(buf[0:]))
 		// write the n bytes read
-		_, err2 := conn.Write(buf[0:n])
-		if err2 != nil {
-			return
-		}
+		_, err = conn.Write(buf[0:n])
+		checkError(err)
 	}
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
+		log.Fatal("Fatal error: %s", err.Error())
 	}
 }
