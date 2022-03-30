@@ -13,39 +13,36 @@ var (
 	w     bytes.Buffer
 )
 
-func printer(action string, data []byte) {
-	fmt.Printf("%11s: %s %v\n", action, string(data), data)
-}
-
 func restoreViaDecoder() {
 	var buf *bytes.Buffer = bytes.NewBuffer(w.Bytes())
 	var ior io.Reader = base64.NewDecoder(enc, buf)
 	l := len(input)
 
+	// adjust for unknown padding
 	if l > 3 && l%3 != 0 {
 		l = l + 2
 	}
 
 	restored := make([]byte, l)
 	ior.Read(restored)
-	printer("viaDecoder", restored)
+	fmt.Printf("%11s: %s %v\n", "viaDecoder", string(restored), restored)
 }
 
 func restoreViaEncoding() {
 	var dst []byte = make([]byte, len(input))
 	enc.Decode(dst, w.Bytes())
-	printer("viaEncoding", dst)
+	fmt.Printf("%11s: %s %v\n", "viaEncoding", string(dst), dst)
 }
 
 func main() {
-	printer("input", input)
+	fmt.Printf("%11s: %s %v\n", "input", string(input), input)
 
 	var wc io.WriteCloser = base64.NewEncoder(enc, &w)
 
 	wc.Write(input)
 	wc.Close()
 
-	printer("encoded", w.Bytes())
+	fmt.Printf("%11s: %s %v\n", "ecoded", string(w.Bytes()), w.Bytes())
 
 	restoreViaDecoder()
 	restoreViaEncoding()

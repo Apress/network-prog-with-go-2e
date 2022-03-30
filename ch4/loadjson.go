@@ -1,9 +1,9 @@
-/* LoadGob
+/* LoadJSON
  */
 package main
 
 import (
-	"encoding/gob"
+	"encoding/json"
 	"fmt"
 	"log"
 	"os"
@@ -26,17 +26,15 @@ type Email struct {
 
 func main() {
 	var person Person
-	loadGob("person.gob", &person)
-	fmt.Println(person)
+	loadJSON("person.json", &person)
+	fmt.Printf("%v\n", person)
 }
 
-func loadGob(fileName string, key interface{}) {
-	inFile, err := os.Open(fileName)
+func loadJSON(fileName string, key interface{}) {
+	data, err := os.ReadFile(fileName)
 	checkError(err)
-	decoder := gob.NewDecoder(inFile)
-	err = decoder.Decode(key)
+	err = json.Unmarshal(data, key)
 	checkError(err)
-	inFile.Close()
 }
 
 func checkError(err error) {

@@ -4,8 +4,8 @@ package main
 
 import (
 	"encoding/gob"
-	"fmt"
 	"os"
+	"log"
 )
 
 type Person struct {
@@ -26,8 +26,11 @@ type Email struct {
 func main() {
 	person := Person{
 		Name: Name{Family: "Newmarch", Personal: "Jan"},
-		Email: []Email{Email{Kind: "home", Address: "jan@newmarch.name"},
-			Email{Kind: "work", Address: "j.newmarch@boxhill.edu.au"}}}
+		Email: []Email{
+			Email{Kind: "home", Address: "jan@newmarch.name"},
+			Email{Kind: "work", Address: "j.newmarch@boxhill.edu.au"},
+		},
+	}
 	saveGob("person.gob", person)
 }
 
@@ -42,7 +45,6 @@ func saveGob(fileName string, key interface{}) {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

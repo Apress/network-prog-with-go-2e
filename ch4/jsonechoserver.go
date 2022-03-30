@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net"
-	"os"
+	"log"
 )
 
 type Person struct {
@@ -24,14 +24,6 @@ type Name struct {
 type Email struct {
 	Kind    string
 	Address string
-}
-
-func (p Person) String() string {
-	s := p.Name.Personal + " " + p.Name.Family
-	for _, v := range p.Email {
-		s += "n" + v.Kind + ": " + v.Address
-	}
-	return s
 }
 
 func main() {
@@ -59,13 +51,6 @@ func main() {
 	}
 }
 
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
-	}
-}
-
 func readFully(conn net.Conn) ([]byte, error) {
 	result := bytes.NewBuffer(nil)
 	var buf [512]byte
@@ -84,4 +69,10 @@ func readFully(conn net.Conn) ([]byte, error) {
 		}
 	}
 	return result.Bytes(), nil
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatalln("Fatal error ", err.Error())
+	}
 }

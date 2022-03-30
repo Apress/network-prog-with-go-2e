@@ -15,7 +15,7 @@ func main() {
 	mdata1, err := asn1.Marshal(t1)
 	fmt.Println(err)
 	var newT1 p.T
-	_, err1 := asn1.Unmarshal(mdata1, &newT1)
-	fmt.Println(err1)
+	_, err = asn1.Unmarshal(mdata1, &newT1)
+	fmt.Println(err)
 }
 

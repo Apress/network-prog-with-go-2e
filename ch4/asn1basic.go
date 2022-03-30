@@ -15,7 +15,7 @@ func main() {
 	fmt.Println("Before marshalling: ", t.String())
 	mdata, _ := asn1.Marshal(t)
 	var newtime = new(time.Time)
-	_, _ = asn1.Unmarshal(mdata, newtime)
+	asn1.Unmarshal(mdata, newtime)
 	fmt.Println("After marshal/unmarshal: ", newtime.String())
 
 	// vulgar fraction, string to string
@@ -23,6 +23,6 @@ func main() {
 	fmt.Println("Before marshalling: ", s)
 	mdata2, _ := asn1.Marshal(s)
 	var newstr string
-	_, _ = asn1.Unmarshal(mdata2, &newstr)
+	asn1.Unmarshal(mdata2, &newstr)
 	fmt.Println("After marshal/unmarshal: ", newstr)
 }

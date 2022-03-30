@@ -5,8 +5,8 @@ package main
 import (
 	"encoding/gob"
 	"fmt"
+	"log"
 	"net"
-	"os"
 )
 
 type Person struct {
@@ -21,14 +21,6 @@ type Name struct {
 type Email struct {
 	Kind    string
 	Address string
-}
-
-func (p Person) String() string {
-	s := p.Name.Personal + " " + p.Name.Family
-	for _, v := range p.Email {
-		s += "n" + v.Kind + ": " + v.Address
-	}
-	return s
 }
 
 func main() {
@@ -47,7 +39,7 @@ func main() {
 		for n := 0; n < 10; n++ {
 			var person Person
 			decoder.Decode(&person)
-			fmt.Println(person.String())
+			fmt.Println(person)
 			encoder.Encode(person)
 		}
 		conn.Close() // we're finished
@@ -56,7 +48,6 @@ func main() {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

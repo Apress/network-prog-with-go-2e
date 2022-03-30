@@ -3,48 +3,49 @@ package main
 import (
 	"encoding/asn1"
 	"fmt"
+	"log"
 )
 
-type T1 struct {
+type MyType struct {
 	F1 rune
 	F2 int
 }
 
-type T2 struct {
+type YourType struct {
 	F3 rune
 }
 
-type T3 struct {
+type TheirType struct {
 	F4 byte
 }
 
 func main() {
 	// this first example works
-	t1 := T1{'ロ', 1}
+	t1 := MyType{'ロ', 1}
 	mdata1, _ := asn1.Marshal(t1)
 
-	t2 := new(T2)
+	t2 := new(YourType)
 	_, err := asn1.Unmarshal(mdata1, t2)
 	fmt.Printf("Before marshal: %v, after unmarshal: %v\n", t1, t2)
-	if err != nil {
-		fmt.Println(err)
-	}
+	checkError(err)
 
 	// syntax error (fails to fill all fields)
-	y := T2{'ロ'}
+	y := YourType{'ロ'}
 	mdata2, _ := asn1.Marshal(y)
-	z := new(T1)
+	z := new(MyType)
 	_, err = asn1.Unmarshal(mdata2, z)
 	fmt.Printf("Before marshal: %v, after unmarshal: %v\n", y, z)
-	if err != nil {
-		fmt.Println(err)
-	}
+	checkError(err)
 
 	// structural error (incorrect Go type byte != rune)
-	t3 := new(T3)
+	t3 := new(TheirType)
 	_, err = asn1.Unmarshal(mdata1, t3)
 	fmt.Printf("Before marshal: %v, after unmarshal: %v\n", t1, t3)
+	checkError(err)
+}
+
+func checkError(err error) {
 	if err != nil {
-		fmt.Println(err)
+		log.Println(err.Error())
 	}
 }

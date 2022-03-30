@@ -7,6 +7,7 @@ import (
 	"encoding/asn1"
 	"fmt"
 	"io"
+	"log"
 	"net"
 	"os"
 	"time"
@@ -14,9 +15,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprintf(os.Stderr, "Usage: %s host:port",
-			os.Args[0])
-		os.Exit(1)
+		log.Fatalln("Usage: %s host:port", os.Args[0])
 	}
 	service := os.Args[1]
 	conn, err := net.Dial("tcp", service)
@@ -27,14 +26,6 @@ func main() {
 	_, err1 := asn1.Unmarshal(result, &newtime)
 	checkError(err1)
 	fmt.Println("After marshal/unmarshal: ", newtime.String())
-	os.Exit(0)
-}
-
-func checkError(err error) {
-	if err != nil {
-		fmt.Fprintf(os.Stderr, "Fatal error: %s", err.Error())
-		os.Exit(1)
-	}
 }
 
 func readFully(conn net.Conn) ([]byte, error) {
@@ -52,4 +43,10 @@ func readFully(conn net.Conn) ([]byte, error) {
 		}
 	}
 	return result.Bytes(), nil
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatalln("Fatal error: %s", err.Error())
+	}
 }
