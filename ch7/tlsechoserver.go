@@ -3,12 +3,10 @@
 package main
 
 import (
-	"crypto/rand"
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net"
-	"os"
-	"time"
 )
 
 func main() {
@@ -16,9 +14,6 @@ func main() {
 		"private.pem")
 	checkError(err)
 	config := tls.Config{Certificates: []tls.Certificate{cert}}
-	now := time.Now()
-	config.Time = func() time.Time { return now }
-	config.Rand = rand.Reader
 	service := "0.0.0.0:1200"
 	listener, err := tls.Listen("tcp", service, &config)
 	checkError(err)
@@ -52,7 +47,6 @@ func handleClient(conn net.Conn) {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

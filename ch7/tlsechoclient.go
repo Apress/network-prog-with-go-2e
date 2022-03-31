@@ -13,14 +13,13 @@ func main() {
 	// have one. It's also possible to omit this in order to use the
 	// default root set of the current operating system.
 	roots := x509.NewCertPool()
-	ok := roots.AppendCertsFromPEM(rootPEM)
-	if !ok {
+	if ok := roots.AppendCertsFromPEM(rootPEM); !ok {
 		panic("failed to parse root certificate")
 	}
 
 	conn, err := tls.Dial("tcp", "localhost:1200", &tls.Config{
 		RootCAs: roots,
-		//InsecureSkipVerify: true,
+		//		InsecureSkipVerify: false,
 	})
 	if err != nil {
 		panic("failed to connect: " + err.Error())

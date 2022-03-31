@@ -3,13 +3,13 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net"
-	"os"
 	"unicode/utf16"
 )
 
-const BOM = '\ufffe'
+// warning, our server currently only supports big endian
+const BOM = '\ufeff'
 
 func main() {
 	service := "0.0.0.0:1210"
@@ -22,22 +22,22 @@ func main() {
 		if err != nil {
 			continue
 		}
-		str := "j'ai arrÃªtÃ©"
+		// eg. Ŵ  is 0x0174, Ã is 0x00c3
+		str := "Ŵj'ai arrÃªtÃ©"
 		shorts := utf16.Encode([]rune(str))
 		writeShorts(conn, shorts)
-		conn.Close() // we're finished
+		conn.Close()
 	}
 }
 func writeShorts(conn net.Conn, shorts []uint16) {
 	var bytes [2]byte
 	// send the BOM as first two bytes
-	bytes[0] = BOM >> 8
-	bytes[1] = BOM & 255
-	_, err := conn.Write(bytes[0:])
-	if err != nil {
-		return
-	}
+	bytes[0] = BOM >> 8             // taking ff from BOM
+	bytes[1] = BOM & 255            // taking fe from BOM
+	_, err := conn.Write(bytes[0:]) // send BOM
+	checkError(err)
 	for _, v := range shorts {
+		// breakup the unit16 into two bytes, then send
 		bytes[0] = byte(v >> 8)
 		bytes[1] = byte(v & 255)
 		_, err = conn.Write(bytes[0:])
@@ -48,7 +48,6 @@ func writeShorts(conn net.Conn, shorts []uint16) {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

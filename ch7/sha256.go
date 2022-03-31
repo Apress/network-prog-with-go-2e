@@ -3,8 +3,8 @@
 package main
 
 import (
-	"crypto/sha256"
 	"crypto/hmac"
+	"crypto/sha256"
 	"fmt"
 )
 

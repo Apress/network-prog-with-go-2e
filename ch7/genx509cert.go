@@ -9,7 +9,7 @@ import (
 	"crypto/x509/pkix"
 	"encoding/gob"
 	"encoding/pem"
-	"fmt"
+	"log"
 	"math/big"
 	"os"
 	"time"
@@ -65,7 +65,6 @@ func loadKey(fileName string, key interface{}) {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

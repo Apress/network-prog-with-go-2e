@@ -7,10 +7,12 @@ import (
 	"crypto/x509"
 	"encoding/gob"
 	"fmt"
+	"log"
 	"os"
 )
 
 func main() {
+	// load certificate so we can access embedded public key
 	certCerFile, err := os.Open("jan.newmarch.name.cer")
 	checkError(err)
 	derBytes := make([]byte, 1000) // bigger than the file
@@ -24,6 +26,8 @@ func main() {
 	fmt.Printf("Not before %s\n", cert.NotBefore.String())
 	fmt.Printf("Not after %s\n", cert.NotAfter.String())
 
+	// load non-emdedded public key
+	// should be the same as above embedded key
 	pub, err := os.Open("public.key")
 	checkError(err)
 	dec := gob.NewDecoder(pub)
@@ -32,15 +36,20 @@ func main() {
 	checkError(err)
 	pub.Close()
 
-	if cert.PublicKey.(*rsa.PublicKey).N.Cmp(publicKey.N) == 0 && publicKey.E == cert.PublicKey.(*rsa.PublicKey).E {
-		println("Same public key")
-	} else {
-		println("Different public key")
+	// genx509cert.go created a public key and certificate
+	// certificates also embed the public key
+	// we are comparing the public key and the embedded public key fields
+	// see go doc crypto/rsa.PublicKey for more
+	if cert.PublicKey.(*rsa.PublicKey).N.Cmp(publicKey.N) == 0 {
+		if publicKey.E == cert.PublicKey.(*rsa.PublicKey).E {
+			fmt.Println("Same public key")
+			return
+		}
 	}
+	fmt.Println("Different public key")
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
