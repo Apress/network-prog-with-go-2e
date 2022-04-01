@@ -4,6 +4,8 @@ package main
 
 import (
 	"fmt"
+	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"os"
@@ -12,26 +14,20 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], "host:port")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "host:port")
 	}
 	url := os.Args[1]
 	response, err := http.Get(url)
-	if err != nil {
-		fmt.Println(err.Error())
-		os.Exit(2)
-	}
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		os.Exit(2)
+	checkError(err)
+	if response.StatusCode != http.StatusOK {
+		log.Fatalln(response.StatusCode)
 	}
 	fmt.Println("The response header is")
 	b, _ := httputil.DumpResponse(response, false)
 	fmt.Print(string(b))
 	contentTypes := response.Header["Content-Type"]
 	if !acceptableCharset(contentTypes) {
-		fmt.Println("Cannot handle", contentTypes)
-		os.Exit(4)
+		log.Fatalln("Cannot handle", contentTypes)
 	}
 	fmt.Println("The response body is")
 	var buf [512]byte
@@ -39,11 +35,15 @@ func main() {
 	for {
 		n, err := reader.Read(buf[0:])
 		if err != nil {
-			os.Exit(0)
+			if err == io.EOF {
+				fmt.Print(string(buf[0:n]))
+				reader.Close()
+				break
+			}
+			checkError(err)
 		}
 		fmt.Print(string(buf[0:n]))
 	}
-	os.Exit(0)
 }
 func acceptableCharset(contentTypes []string) bool {
 	// each type is like [text/html; charset=utf-8]
@@ -54,4 +54,10 @@ func acceptableCharset(contentTypes []string) bool {
 		}
 	}
 	return false
+}
+
+func checkError(err error) {
+	if err != nil {
+		log.Fatalln(err)
+	}
 }

@@ -3,9 +3,8 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
-	"os"
 )
 
 func main() {
@@ -14,14 +13,7 @@ func main() {
 
 	// register the handler and deliver requests to it
 	err := http.ListenAndServe(":8000", fileServer)
-
-	checkError(err)
-	// That's it!
-}
-
-func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln(err)
 	}
 }

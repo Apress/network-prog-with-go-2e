@@ -5,6 +5,7 @@ package main
 import (
 	"crypto/tls"
 	"fmt"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -13,15 +14,12 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0],
-			"https://host:port/page")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "https://host:port/page")
 	}
 	url, err := url.Parse(os.Args[1])
 	checkError(err)
 	if url.Scheme != "https" {
-		fmt.Println("Not https scheme ", url.Scheme)
-		os.Exit(1)
+		log.Fatalln("Not https scheme ", url.Scheme)
 	}
 
 	transport := &http.Transport{}
@@ -35,17 +33,15 @@ func main() {
 	response, err := client.Do(request)
 	checkError(err)
 
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		os.Exit(2)
+	if response.StatusCode != http.StatusOK {
+		log.Fatalln(response.Status)
 	}
 	fmt.Println("get a response")
 
 	chSet := getCharset(response)
 	fmt.Printf("got charset %s\n", chSet)
 	if chSet != "UTF-8" {
-		fmt.Println("Cannot handle", chSet)
-		os.Exit(4)
+		log.Fatalln("Cannot handle", chSet)
 	}
 
 	var buf [512]byte
@@ -53,12 +49,9 @@ func main() {
 	fmt.Println("got body")
 	for {
 		n, err := reader.Read(buf[0:])
-		if err != nil {
-			os.Exit(0)
-		}
+		checkError(err)
 		fmt.Print(string(buf[0:n]))
 	}
-	os.Exit(0)
 }
 func getCharset(response *http.Response) string {
 	contentType := response.Header.Get("Content-Type")
@@ -75,7 +68,6 @@ func getCharset(response *http.Response) string {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

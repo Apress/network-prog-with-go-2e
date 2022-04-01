@@ -3,6 +3,7 @@
 package main
 
 import (
+	"log"
 	"encoding/base64"
 	"fmt"
 	"io"
@@ -16,9 +17,7 @@ const auth = "jannewmarch:mypassword"
 
 func main() {
 	if len(os.Args) != 3 {
-
-		fmt.Println("Usage: ", os.Args[0], "http://proxy-host:port http://host:port/page")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "http://proxy-host:port http://host:port/page")
 	}
 	proxy := os.Args[1]
 	proxyURL, err := url.Parse(proxy)
@@ -45,9 +44,8 @@ func main() {
 
 	checkError(err)
 	fmt.Println("Read ok")
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		os.Exit(2)
+	if response.StatusCode != http.StatusOK {
+		log.Fatalln(response.Status)
 	}
 	fmt.Println("Response ok")
 
@@ -56,7 +54,11 @@ func main() {
 	for {
 		n, err := reader.Read(buf[0:])
 		if err != nil {
-			os.Exit(0)
+			if err == io.EOF {
+				fmt.Print(string(buf[0:n]))
+				return
+			}
+			checkError(err)
 		}
 		fmt.Print(string(buf[0:n]))
 	}
@@ -64,10 +66,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		if err == io.EOF {
-			return
-		}
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

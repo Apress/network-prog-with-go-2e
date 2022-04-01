@@ -3,7 +3,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -17,8 +17,9 @@ func main() {
 
 	// deliver requests to the handlers
 	err := http.ListenAndServe(":8000", nil)
-	checkError(err)
-	// That's it!
+	if err != nil {
+		log.Fatalln(err)
+	}
 }
 func printEnv(writer http.ResponseWriter, req *http.Request) {
 	env := os.Environ()
@@ -27,10 +28,4 @@ func printEnv(writer http.ResponseWriter, req *http.Request) {
 		writer.Write([]byte(v + "\n"))
 	}
 	writer.Write([]byte("</pre>"))
-}
-func checkError(err error) {
-	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
-	}
 }
