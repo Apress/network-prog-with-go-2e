@@ -4,7 +4,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"text/template"
 )
@@ -15,8 +15,9 @@ type Person struct {
 }
 
 const templ = `{{$name := .Name}}
-{{range .Emails}}
-    Name is {{$name}}, email is {{.}}
+{{ $numEmails := .Emails | len -}}
+{{range $idx, $email := .Emails -}}
+Name is {{$name}}, email {{$email}} is {{ $idx | increment }} of {{ $numEmails }}
 {{end}}
 `
 
@@ -26,15 +27,19 @@ func main() {
 		Emails: []string{"jan@newmarch.name",
 			"jan.newmarch@gmail.com"},
 	}
-	t := template.New("Person template")
-	t, err := t.Parse(templ)
+	t, err := template.New("Person template").Funcs(
+		template.FuncMap{
+			"increment": func(val int) int {
+				return val + 1
+			},
+		},
+	).Parse(templ)
 	checkError(err)
 	err = t.Execute(os.Stdout, person)
 	checkError(err)
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

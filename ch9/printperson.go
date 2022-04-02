@@ -3,7 +3,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"os"
 	"text/template"
 )
@@ -12,7 +12,7 @@ type Person struct {
 	Name   string
 	Age    int
 	Emails []string
-	Jobs   []*Job
+	Jobs   []Job
 }
 type Job struct {
 	Employer string
@@ -40,7 +40,7 @@ func main() {
 		Age:  66,
 		Emails: []string{"jan@newmarch.name",
 			"jan.newmarch@gmail.com"},
-		Jobs: []*Job{&job1, &job2},
+		Jobs: []Job{job1, job2},
 	}
 	t := template.New("Person template")
 	t, err := t.Parse(templ)
@@ -50,7 +50,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

@@ -7,6 +7,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"log"
 	"os"
 	"text/template"
 )
@@ -16,18 +17,15 @@ type Person struct {
 	Emails []string
 }
 
-const templ = `{"Name": "{{.Name}}",
- "Emails": [
-{{range $index, $elmt := .Emails}}
-    {{if $index}}
-        , "{{$elmt}}"
-    {{else}}
-         "{{$elmt}}"
-    {{end}}
-{{end}}
- ]
-}
-`
+const templ = `{"Name": "{{- .Name -}}", "Emails": [
+{{- range $index, $elmt := .Emails -}}
+    {{- if $index -}}
+        , "{{- $elmt -}}"
+    {{- else -}}
+         "{{- $elmt -}}"
+    {{- end -}}
+{{- end -}}
+] }`
 
 func main() {
 	person := Person{
@@ -46,12 +44,11 @@ func main() {
 	err = t.Execute(&b, person)
 	checkError(err)
 	if json.Valid(b.Bytes()) {
-		fmt.Println("valid json")
+		fmt.Println("\nvalid json")
 	}
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
