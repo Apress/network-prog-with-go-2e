@@ -5,6 +5,7 @@ package main
 import (
 	"fmt"
 	"golang.org/x/net/websocket"
+	"log"
 	"os"
 )
 
@@ -15,9 +16,7 @@ type Person struct {
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0],
-			"ws://host:port")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "ws://host:port")
 	}
 	service := os.Args[1]
 	conn, err := websocket.Dial(service, "", "http://localhost")
@@ -34,7 +33,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

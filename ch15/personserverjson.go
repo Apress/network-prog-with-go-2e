@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 	"golang.org/x/net/websocket"
+	"log"
 	"net/http"
-	"os"
 )
 
 type Person struct {
@@ -33,7 +33,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

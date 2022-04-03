@@ -3,10 +3,10 @@
 package main
 
 import (
+	"log"
 	"fmt"
 	"golang.org/x/net/websocket"
 	"net/http"
-	"os"
 )
 
 func Echo(ws *websocket.Conn) {
@@ -37,7 +37,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

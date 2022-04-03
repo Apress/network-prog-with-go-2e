@@ -6,15 +6,14 @@ import (
 	"fmt"
 	"github.com/gorilla/websocket"
 	"io"
+	"log"
 	"net/http"
 	"os"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0],
-			"ws://host:port")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "ws://host:port")
 	}
 	service := os.Args[1]
 	header := make(http.Header)
@@ -38,7 +37,6 @@ func main() {
 				err.Error())
 			break
 		}
-		//checkError(err)
 		fmt.Println("Received from server: " +
 			string(reply[:]))
 		// return the msg
@@ -48,11 +46,9 @@ func main() {
 			break
 		}
 	}
-	os.Exit(0)
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

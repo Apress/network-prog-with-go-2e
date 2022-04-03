@@ -7,19 +7,18 @@ import (
 	"fmt"
 	"golang.org/x/net/websocket"
 	"io"
+	"log"
 	"os"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0],
-			"wss://host:port")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "wss://host:port")
 	}
 	config, err := websocket.NewConfig(os.Args[1],
 		"http://localhost")
 	checkError(err)
-	tlsConfig := &tls.Config{InsecureSkipVerify: true}
+	tlsConfig := &tls.Config{InsecureSkipVerify: false}
 	config.TlsConfig = tlsConfig
 	conn, err := websocket.DialConfig(config)
 	checkError(err)
@@ -43,11 +42,9 @@ func main() {
 			break
 		}
 	}
-	os.Exit(0)
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

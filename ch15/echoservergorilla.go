@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 	"github.com/gorilla/websocket"
+	"log"
 	"net/http"
-	"os"
 )
 
 var upgrader = websocket.Upgrader{
@@ -43,7 +43,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

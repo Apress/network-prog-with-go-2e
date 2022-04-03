@@ -5,8 +5,8 @@ package main
 import (
 	"fmt"
 	"golang.org/x/net/websocket"
+	"log"
 	"net/http"
-	"os"
 	"os/exec"
 	"time"
 )
@@ -16,14 +16,14 @@ var ROOT_DIR = "."
 func GetTemp(ws *websocket.Conn) {
 	for {
 		msg, err := exec.Command(ROOT_DIR + "/sensors.sh").CombinedOutput()
-		checkError(err)	
+		checkError(err)
 		fmt.Println("Sending to client: " + string(msg[:]))
 		err = websocket.Message.Send(ws, string(msg[:]))
 		if err != nil {
 			fmt.Println("Can't send")
 			break
 		}
-		time.Sleep(2 * 1000 * 1000 * 1000)
+		time.Sleep(time.Duration(2) * time.Second)
 		var reply string
 		err = websocket.Message.Receive(ws, &reply)
 		if err != nil {
@@ -42,7 +42,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
