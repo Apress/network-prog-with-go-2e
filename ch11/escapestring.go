@@ -9,7 +9,7 @@ package main
 import (
 	"fmt"
 	"html"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 )
@@ -21,7 +21,7 @@ func main() {
 }
 func escapeString(rw http.ResponseWriter, req *http.Request) {
 	fmt.Println(req.URL.Path)
-	bytes, err := ioutil.ReadFile("." + req.URL.Path)
+	bytes, err := os.ReadFile("." + req.URL.Path)
 	if err != nil {
 		rw.WriteHeader(http.StatusNotFound)
 		return
@@ -34,7 +34,6 @@ func escapeString(rw http.ResponseWriter, req *http.Request) {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Error ", err.Error())
 	}
 }

@@ -6,18 +6,17 @@ import (
 	"fmt"
 	"golang.org/x/net/html"
 	"io"
-	"io/ioutil"
+	"log"
 	"os"
 	"strings"
 )
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], "file")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "file")
 	}
 	file := os.Args[1]
-	bytes, err := ioutil.ReadFile(file)
+	bytes, err := os.ReadFile(file)
 	checkError(err)
 	r := strings.NewReader(string(bytes))
 	z := html.NewTokenizer(r)
@@ -49,7 +48,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
