@@ -59,7 +59,6 @@ func TestHTTPTestRoundTripTimeout(t *testing.T) {
 	}))
 	defer ts.Close()
 
-	//	c := ts.Client()
 	var c = &http.Client{
 		Timeout: time.Second * 2,
 	}
