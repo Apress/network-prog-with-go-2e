@@ -4,11 +4,10 @@ package main
 
 import (
 	"errors"
-	"fmt"
+	"log"
 	"net"
 	"net/rpc"
 	"net/rpc/jsonrpc"
-	"os"
 )
 
 type Args struct {
@@ -53,7 +52,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
