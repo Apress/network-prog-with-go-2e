@@ -32,7 +32,7 @@ func FuzzMe(f *testing.F) {
 func FuzzBad(f *testing.F) {
 	f.Fuzz(func(t *testing.T, i int) {
 		if i != i {
-			f.Fatalf("want: %v, got: %v", i, i)
+			t.Fatalf("want: %v, got %v", i, i)
 		}
 	})
 }
