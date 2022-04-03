@@ -5,7 +5,7 @@ package main
 import (
 	"encoding/xml"
 	"fmt"
-	"os"
+	"log"
 )
 
 type Person struct {
@@ -43,11 +43,12 @@ func main() {
 	checkError(err)
 	// now use the person structure e.g.
 	fmt.Println("Family name: \"" + person.Name.Family + "\"")
-	fmt.Println("Second email address: \"" + person.Email[1].Address + "\"")
+	for _, email := range person.Email {
+		fmt.Println(email)
+	}
 }
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

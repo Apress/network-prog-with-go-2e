@@ -8,12 +8,13 @@ import (
 )
 
 type Person struct {
-	Name  Name
-	Email []Email
+	XMLName xml.Name `xml:"person"`
+	Name    Name     `xml:"name"`
+	Email   []Email  `xml:"email"`
 }
 type Name struct {
-	Family   string
-	Personal string
+	Family   string `xml:"family"`
+	Personal string `xml:"personal"`
 }
 type Email struct {
 	Kind    string "attr"
