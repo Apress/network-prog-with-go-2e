@@ -4,44 +4,43 @@
 package main
 
 import (
+	"io"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
 	"os"
 	"strings"
-	//"reflect"
 )
 
 const flashcard_xml string = "application/x.flashcards+xml"
 const flashcard_json string = "application/x.flashcards+json"
 
 type FlashcardSets struct {
-        XMLName string `xml:"cardsets"`
-        CardSet    []CardSet `xml:"cardset"`
+	XMLName string    `xml:"cardsets"`
+	CardSet []CardSet `xml:"cardset"`
 }
 
 type CardSet struct {
-        XMLName string `xml:"cardset"`
-        Name string `xml:"name"`
-        Link string `xml:"href,attr"`
-        Cards []Card `xml:"card"`
+	XMLName string `xml:"cardset"`
+	Name    string `xml:"name"`
+	Link    string `xml:"href,attr"`
+	Cards   []Card `xml:"card"`
 }
 
-type Card  struct {
-        Name string `xml:"name"`
-        Link string `xml:"href,attr"`
+type Card struct {
+	Name string `xml:"name"`
+	Link string `xml:"href,attr"`
 }
-
 
 type FlashcardSetsJson struct {
 	CardSet []CardSetJson `json:"cardsets"`
 }
 type CardSetJson struct {
-	Name string `json:"name"`
-	Link string `json:"@id"`
+	Name  string     `json:"name"`
+	Link  string     `json:"@id"`
 	Cards []CardJson `json:"cardset,omitempty"`
 }
 type CardJson struct {
@@ -56,20 +55,18 @@ func getOneFlashcard(url *url.URL, client *http.Client) string {
 
 	response, err := client.Do(request)
 	checkError(err)
-	if response.Status != "200 OK" {
+	if response.StatusCode != http.StatusOK {
 		fmt.Println(response.Status)
 		fmt.Println(response.Header)
-
-		os.Exit(2)
+		checkError(err)
 	}
 
 	fmt.Println("The response header is")
 	b, _ := httputil.DumpResponse(response, false)
 	fmt.Print(string(b))
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
-	//fmt.Printf("Body is %s", content)
 
 	return content
 }
@@ -83,18 +80,17 @@ func getOneFlashcardSet(url *url.URL, client *http.Client) CardSetJson {
 	request.Header.Add("Accept", flashcard_json)
 	response, err := client.Do(request)
 	checkError(err)
-	if response.Status != "200 OK" {
+	if response.StatusCode != http.StatusOK {
 		fmt.Println(response.Status)
 		fmt.Println(response.Header)
-
-		os.Exit(2)
+		checkError(err)
 	}
 
 	fmt.Println("The response header is")
 	b, _ := httputil.DumpResponse(response, false)
 	fmt.Print(string(b))
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
 	fmt.Printf("Body is %s", content)
 
@@ -105,7 +101,7 @@ func getOneFlashcardSet(url *url.URL, client *http.Client) CardSetJson {
 		checkError(err)
 		fmt.Println("JSON: ", sets)
 	}
-       
+
 	return sets
 }
 
@@ -118,18 +114,18 @@ func getFlashcardSets(url *url.URL, client *http.Client) FlashcardSetsJson {
 	request.Header.Add("Accept", flashcard_json)
 	response, err := client.Do(request)
 	checkError(err)
-	if response.Status != "200 OK" {
+	if response.StatusCode != http.StatusOK {
 		fmt.Println(response.Status)
 		fmt.Println(response.Header)
 
-		os.Exit(2)
+		checkError(err)
 	}
 
 	fmt.Println("The response header is")
 	b, _ := httputil.DumpResponse(response, false)
 	fmt.Print(string(b))
 
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
 	fmt.Printf("Body is %s", content)
 
@@ -139,15 +135,13 @@ func getFlashcardSets(url *url.URL, client *http.Client) FlashcardSetsJson {
 		err = json.Unmarshal(body, &sets)
 		checkError(err)
 		fmt.Println("JSON: ", sets)
-		//fmt.Println(reflect.TypeOf(sets))
 	}
 	return sets
 }
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], "http://host:port/page")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "http://host:port/page")
 	}
 	url, err := url.Parse(os.Args[1])
 	checkError(err)
@@ -161,10 +155,9 @@ func main() {
 	//flashcardSets.CardSet[0].Cards = []CardJson{CardJson{Name: `n`, Link: `l`}}
 	bytes, _ := json.Marshal(flashcardSets)
 	fmt.Println(string(bytes[:]))
-		
+
 	url = url
 	client = client
-
 
 	// Step 1: get a list of flashcard sets
 	flashcardSets = getFlashcardSets(url, client)
@@ -179,12 +172,10 @@ func main() {
 	// Step 3: get the contents of one flashcard
 	//         be lazy, just get as text/plain and
 	//         don't do anything with it
-	card_url, _ :=  url.Parse(os.Args[1] + oneFlashcardSet.Cards[0].Link)
+	card_url, _ := url.Parse(os.Args[1] + oneFlashcardSet.Cards[0].Link)
 	fmt.Println("Asking for URL: ", card_url.String())
 	oneFlashcard := getOneFlashcard(card_url, client)
 	fmt.Println("Step 3", oneFlashcard)
-	
-	os.Exit(0)
 }
 
 func getContentType(response *http.Response) string {
@@ -200,7 +191,6 @@ func getContentType(response *http.Response) string {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

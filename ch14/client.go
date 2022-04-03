@@ -4,10 +4,10 @@
 package main
 
 import (
-	//"encoding/json"
 	"encoding/xml"
 	"fmt"
-	"io/ioutil"
+	"io"
+	"log"
 	"net/http"
 	"net/http/httputil"
 	"net/url"
@@ -35,25 +35,31 @@ type Card struct {
 	Link string `xml:"href,attr"`
 }
 
-func getOneFlashcard(url *url.URL, client *http.Client) string {
-	// Get the card as a string, don't do anything with it
+func getter(url *url.URL, client *http.Client, acceptType string) *http.Response {
 	request, err := http.NewRequest("GET", url.String(), nil)
 	checkError(err)
 
+	if acceptType != "" {
+		request.Header.Add("Accept", flashcard_xml)
+	}
 	response, err := client.Do(request)
 	checkError(err)
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		fmt.Println(response.Header)
-
-		os.Exit(2)
+	if response.StatusCode != http.StatusOK {
+		log.Fatalln(err, response)
 	}
 
 	fmt.Println("The response header is")
 	b, _ := httputil.DumpResponse(response, false)
 	fmt.Print(string(b))
+	return response
+}
 
-	body, err := ioutil.ReadAll(response.Body)
+func getOneFlashcard(url *url.URL, client *http.Client) string {
+	// Get the card as a string, don't do anything with it
+	response := getter(url, client, "")
+
+	body, err := io.ReadAll(response.Body)
+	checkError(err)
 	content := string(body[:])
 	//fmt.Printf("Body is %s", content)
 
@@ -62,25 +68,9 @@ func getOneFlashcard(url *url.URL, client *http.Client) string {
 
 func getOneFlashcardSet(url *url.URL, client *http.Client) CardSet {
 	// Get one set of cards
-	request, err := http.NewRequest("GET", url.String(), nil)
-	checkError(err)
+	response := getter(url, client, flashcard_xml)
 
-	// only accept our media types
-	request.Header.Add("Accept", flashcard_xml)
-	response, err := client.Do(request)
-	checkError(err)
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		fmt.Println(response.Header)
-
-		os.Exit(2)
-	}
-
-	fmt.Println("The response header is")
-	b, _ := httputil.DumpResponse(response, false)
-	fmt.Print(string(b))
-
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
 	fmt.Printf("Body is %s", content)
 
@@ -105,32 +95,15 @@ func getOneFlashcardSet(url *url.URL, client *http.Client) CardSet {
 
 func getFlashcardSets(url *url.URL, client *http.Client) FlashcardSets {
 	// Get the toplevel /
-	request, err := http.NewRequest("GET", url.String(), nil)
-	checkError(err)
+	response := getter(url, client, flashcard_xml)
 
-	// only accept our media types
-	request.Header.Add("Accept", flashcard_xml)
-	response, err := client.Do(request)
-	checkError(err)
-	if response.Status != "200 OK" {
-		fmt.Println(response.Status)
-		fmt.Println(response.Header)
-
-		os.Exit(2)
-	}
-
-	fmt.Println("The response header is")
-	b, _ := httputil.DumpResponse(response, false)
-	fmt.Print(string(b))
-
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
 	fmt.Printf("Body is %s", content)
 
 	var sets FlashcardSets
 	contentType := getContentType(response)
 	if contentType == "XML" {
-
 		err = xml.Unmarshal(body, &sets)
 		checkError(err)
 		fmt.Println("XML: ", sets)
@@ -147,17 +120,15 @@ func createFlashcardSet(url1 *url.URL, client *http.Client, name string) string 
 	if response.StatusCode != http.StatusCreated {
 		fmt.Println(`Error: `, response.Status)
 		return ``
-		//os.Exit(2)
 	}
-	body, err := ioutil.ReadAll(response.Body)
+	body, err := io.ReadAll(response.Body)
 	content := string(body[:])
 	return content
 }
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Println("Usage: ", os.Args[0], "http://host:port/page")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], "http://host:port/page")
 	}
 	url, err := url.Parse(os.Args[1])
 	checkError(err)
@@ -187,7 +158,6 @@ func main() {
 	fmt.Println("Asking for URL: ", card_url.String())
 	oneFlashcard := getOneFlashcard(card_url, client)
 	fmt.Println("Step 4", oneFlashcard)
-	os.Exit(0)
 }
 
 func getContentType(response *http.Response) string {
@@ -203,7 +173,6 @@ func getContentType(response *http.Response) string {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

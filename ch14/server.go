@@ -6,7 +6,7 @@ package main
 import (
 	"fmt"
 	"html/template"
-	"io/ioutil"
+	"log"
 	"net/http"
 	"net/url"
 	"os"
@@ -62,20 +62,18 @@ func qualityOfValue(value string, vqs []ValueQuality) float64 {
 		if value == vq.Value {
 			return vq.Quality
 		}
-
 	}
 	return 0
 }
 
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprint(os.Stderr, "Usage: ", os.Args[0], ":port\n")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], ":port\n")
 	}
 	port := os.Args[1]
 
 	http.HandleFunc(`/`, handleFlashCardSets)
-	files, err := ioutil.ReadDir(`flashcardsets`)
+	files, err := os.ReadDir(`flashcardsets`)
 	checkError(err)
 	for _, file := range files {
 		fmt.Println(file.Name())
@@ -88,7 +86,6 @@ func main() {
 	// deliver requests to the handlers
 	err = http.ListenAndServe(port, nil)
 	checkError(err)
-	// That's it!
 }
 
 func hasIllegalChars(s string) bool {
@@ -109,9 +106,9 @@ func handleOneFlashCard(rw http.ResponseWriter, req *http.Request) {
 	path, _ := url.QueryUnescape(req.URL.String())
 	// lose intial '/'
 	path = path[1:]
-	if req.Method == "GET" {
+	if req.Method == http.MethodGet {
 		fmt.Println("Handling card: ", path)
-		json_contents, err := ioutil.ReadFile(path)
+		json_contents, err := os.ReadFile(path)
 		if err != nil {
 			rw.WriteHeader(http.StatusNotFound)
 			rw.Write([]byte(`Resource not found`))
@@ -120,7 +117,7 @@ func handleOneFlashCard(rw http.ResponseWriter, req *http.Request) {
 		// Be lazy here, just return the content as text/plain
 		rw.Write(json_contents)
 		return
-	} else if req.Method == "DELETE" {
+	} else if req.Method == http.MethodDelete {
 		rw.WriteHeader(http.StatusNotImplemented)
 	} else {
 		rw.WriteHeader(http.StatusMethodNotAllowed)
@@ -148,7 +145,7 @@ func handleFlashCardSets(rw http.ResponseWriter, req *http.Request) {
 			return
 		}
 
-		files, err := ioutil.ReadDir(`flashcardsets`)
+		files, err := os.ReadDir(`flashcardsets`)
 		checkError(err)
 		numfiles := len(files)
 		cardSets := make([]FlashcardSet, numfiles, numfiles)
@@ -158,29 +155,20 @@ func handleFlashCardSets(rw http.ResponseWriter, req *http.Request) {
 			// should be PathEscape, not in go 1.6
 			cardSets[n].Link = `/flashcardSets/` + url.QueryEscape(file.Name())
 		}
-
-		if q_xml >= q_json {
-			// XML preferred
-			t, err := template.ParseFiles("xml/ListFlashcardSets.xml")
-			if err != nil {
-				fmt.Println("Template error")
-				http.Error(rw, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			rw.Header().Set("Content-Type", flashcard_xml)
-			t.Execute(rw, cardSets)
-		} else {
-			// JSON preferred
-			t, err := template.ParseFiles("json/ListFlashcardSets.json")
-			if err != nil {
-				fmt.Println("Template error")
-				http.Error(rw, err.Error(), http.StatusInternalServerError)
-				return
-			}
-			rw.Header().Set("Content-Type", flashcard_json)
-			t.Execute(rw, cardSets)
-
+		parseFile := "xml/ListFlashcardSets.xml"
+		flashcardType := flashcard_xml
+		if q_xml < q_json {
+			parseFile = "json/ListFlashcardSets.json"
+			flashcardType = flashcard_json
 		}
+		t, err := template.ParseFiles(parseFile)
+		if err != nil {
+			fmt.Println("Template error")
+			http.Error(rw, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		rw.Header().Set("Content-Type", flashcardType)
+		t.Execute(rw, cardSets)
 	} else if req.Method == "POST" {
 		name := req.FormValue(`name`)
 		if hasIllegalChars(name) {
@@ -192,7 +180,6 @@ func handleFlashCardSets(rw http.ResponseWriter, req *http.Request) {
 		err := os.Mkdir(`flashcardsets/`+name,
 			(os.ModeDir | os.ModePerm))
 		if err != nil {
-fmt.Println("RON", err)
 			rw.WriteHeader(http.StatusForbidden)
 			return
 		}
@@ -210,7 +197,7 @@ func handleOneFlashCardSet(rw http.ResponseWriter, req *http.Request) {
 	cooked_url, _ := url.QueryUnescape(req.URL.String())
 	fmt.Println("Handling one set for: ", cooked_url)
 
-	if req.Method == "GET" {
+	if req.Method == http.MethodGet {
 		acceptTypes := parseValueQuality(req.Header.Get("Accept"))
 		fmt.Println(acceptTypes)
 
@@ -226,7 +213,7 @@ func handleOneFlashCardSet(rw http.ResponseWriter, req *http.Request) {
 		path := req.URL.String()
 		// lose leading /
 		relative_path := path[1:]
-		files, err := ioutil.ReadDir(relative_path)
+		files, err := os.ReadDir(relative_path)
 		checkError(err)
 		numfiles := len(files)
 		cards := make([]Flashcard, numfiles, numfiles)
@@ -260,7 +247,7 @@ func handleOneFlashCardSet(rw http.ResponseWriter, req *http.Request) {
 			t.Execute(rw, cards)
 
 		}
-	} else if req.Method == "POST" {
+	} else if req.Method == http.MethodPost {
 		name := req.FormValue(`name`)
 		if hasIllegalChars(name) {
 			rw.WriteHeader(http.StatusForbidden)
@@ -276,7 +263,7 @@ func handleOneFlashCardSet(rw http.ResponseWriter, req *http.Request) {
 		base_url := req.URL.String()
 		new_url := base_url + `flashcardSets/` + name
 		_, _ = rw.Write([]byte(new_url))
-	} else if req.Method == "DELETE" {
+	} else if req.Method == http.MethodDelete {
 		rw.WriteHeader(http.StatusNotImplemented)
 	} else {
 		rw.WriteHeader(http.StatusMethodNotAllowed)
@@ -286,7 +273,6 @@ func handleOneFlashCardSet(rw http.ResponseWriter, req *http.Request) {
 
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }
