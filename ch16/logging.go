@@ -17,7 +17,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", buildHandler("HomeHandler"))
 	r.HandleFunc("/products", buildHandler("ProductsHandler"))
-	r.HandleFunc("/articles", buildHandler("ArticlesHandler"))
+	r.HandleFunc("/articles", buildHandler("ArticlesHandler")).Host("example.com").Methods("GET").Schemes("http")
 	loggedRouter := handlers.LoggingHandler(os.Stdout, r)
 	http.ListenAndServe(":8080", loggedRouter)
 }

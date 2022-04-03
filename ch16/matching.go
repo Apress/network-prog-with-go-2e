@@ -16,5 +16,5 @@ func main() {
 	r.HandleFunc("/", buildHandler("HomeHandler"))
 	r.HandleFunc("/products", buildHandler("ProductsHandler"))
 	r.HandleFunc("/articles", buildHandler("ArticlesHandler")).Host("example.com").Methods("GET").Schemes("http")
-	http.ListenAndServe(":8080", r)
+	http.ListenAndServe(":8080", nil)
 }
