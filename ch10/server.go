@@ -6,14 +6,35 @@ package main
 import (
 	"fmt"
 	"html/template"
+	"log"
 	"net/http"
 	"os"
 )
 
+const (
+	DefaultSet           = "common_words"
+	DefaultAmount        = "Random"
+	ActionShow           = "Show cards in set"
+	ActionList           = "List words in set"
+	ActionUnknown        = "Unknown action"
+	URLFlashCardSetsPath = "flashcardSets"
+	FlashCardPage        = "flashcards.html"
+	ListFlashCardPage    = "list" + FlashCardPage
+	ShowFlashCardPage    = "show" + FlashCardPage
+	ListWordsPage        = "listwords.html"
+	CardOrderSequential  = "Sequential"
+	CardOrderRandom      = "Random"
+)
+
+var showHalf = map[string]string{
+	"Random":  "RANDOM_HALF",
+	"English": "ENGLISH_HALF",
+	"Chinese": "CHINESE_HALF",
+}
+
 func main() {
 	if len(os.Args) != 2 {
-		fmt.Fprint(os.Stderr, "Usage: ", os.Args[0], ":port\n")
-		os.Exit(1)
+		log.Fatalln("Usage: ", os.Args[0], ":port")
 	}
 	port := os.Args[1]
 
@@ -25,22 +46,23 @@ func main() {
 	fileServer = http.StripPrefix("/css/", http.FileServer(http.Dir("css")))
 	http.Handle("/css/", fileServer)
 
-	http.HandleFunc("/flashcards.html", listFlashCards)
-	http.HandleFunc("/flashcardSets", manageFlashCards)
+	http.HandleFunc("/"+FlashCardPage, listFlashCards)
+	http.HandleFunc("/"+URLFlashCardSetsPath, manageFlashCards)
 
 	// deliver requests to the handlers
 	err := http.ListenAndServe(port, nil)
 	checkError(err)
-	// That's it!
 }
 
 func listFlashCards(rw http.ResponseWriter, req *http.Request) {
 	flashCardsNames := ListFlashCardsNames()
-	t, err := template.ParseFiles("html/listflashcards.html")
+	t, err := template.ParseFiles("html/" + ListFlashCardPage)
+
 	if err != nil {
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		httpErrorHandler(rw, err)
 		return
 	}
+
 	t.Execute(rw, flashCardsNames)
 }
 
@@ -56,94 +78,91 @@ func manageFlashCards(rw http.ResponseWriter, req *http.Request) {
 	//if unset
 	//http://localhost:8000/flashcardSets?flashcardSets=common_words&order=Random&half=Random&submit=Show+cards+in+set
 	if len(set) == 0 {
-		set = "common_words"
-		order = "Random"
-		action = "Show cards in set"
-		half = "Random"
+		set = DefaultSet
+		order = DefaultAmount
+		action = ActionShow
+		half = DefaultAmount
 	}
 
-	cardname := "flashcardSets/" + set
+	cardname := URLFlashCardSetsPath + "/" + set
 
-	fmt.Println("set chosen is", set)
-	fmt.Println("order is", order)
-	fmt.Println("action is", action)
-	fmt.Println("half is", half)
+	fmt.Printf("Set %s, order %s, action %s, half %s, cardname %s\n", set, order, action, half, cardname)
 
-	fmt.Println("cardname", cardname, "action", action)
-
-	if action == "Show cards in set" {
+	switch action {
+	case ActionShow:
 		showFlashCards(rw, cardname, order, half)
-	} else if action == "List words in set" {
+	case ActionList:
 		listWords(rw, cardname)
-	} else {
-		fmt.Println("unknown action")
+	default:
+		fmt.Println(ActionUnknown)
 	}
 }
 
 func showFlashCards(rw http.ResponseWriter, cardname, order, half string) {
-	fmt.Println("Loading card name", cardname)
 	cards := new(FlashCards)
-	LoadJSON(cardname, &cards)
-	if order == "Sequential" {
+	content, err := os.Open(cardname)
+	checkError(err)
+	LoadJSON(content, &cards)
+
+	switch order {
+	case CardOrderSequential:
 		cards.CardOrder = "SEQUENTIAL"
-	} else {
+	default:
 		cards.CardOrder = "RANDOM"
 	}
-	fmt.Println("half is", half)
-	if half == "Random" {
-		cards.ShowHalf = "RANDOM_HALF"
-	} else if half == "English" {
-		cards.ShowHalf = "ENGLISH_HALF"
-	} else {
-		cards.ShowHalf = "CHINESE_HALF"
-	}
-	fmt.Println("loaded cards", len(cards.Cards))
-	fmt.Println("Card name", cards.Name)
 
-	t := template.New("showflashcards.html")
-	t = t.Funcs(template.FuncMap{"pinyin": PinyinFormatter})
-	t, err := t.ParseFiles("html/showflashcards.html")
+	if v, ok := showHalf[half]; ok {
+		cards.ShowHalf = v
+	} else {
+		cards.ShowHalf = showHalf["Chinese"]
+	}
+
+	fmt.Printf("Loading card %s, half %s, loaded # of %d, card name %s\n", cardname, half, len(cards.Cards), cards.Name)
+
+	t, err := template.New(ShowFlashCardPage).Funcs(template.FuncMap{"pinyin": PinyinFormatter}).ParseFiles("html/" + ShowFlashCardPage)
+
 	if err != nil {
-		fmt.Println(err.Error())
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		httpErrorHandler(rw, err)
 		return
 	}
+
 	err = t.Execute(rw, cards)
+
 	if err != nil {
-		fmt.Println("Execute error " + err.Error())
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		httpErrorHandler(rw, err)
 		return
 	}
 }
 
 func listWords(rw http.ResponseWriter, cardname string) {
-	fmt.Println("Loading card name", cardname)
 	cards := new(FlashCards)
-	LoadJSON(cardname, cards)
-	fmt.Println("loaded cards", len(cards.Cards))
-	fmt.Println("Card name", cards.Name)
+	content, err := os.Open(cardname)
+	checkError(err)
+	LoadJSON(content, &cards)
 
-	t := template.New("listwords.html")
+	fmt.Printf("Loading card name %s, loaded cards %d, card name %s\n", cardname, len(cards.Cards), cards.Name)
 
-	t = t.Funcs(template.FuncMap{"pinyin": PinyinFormatter})
-	t, err := t.ParseFiles("html/listwords.html")
+	t, err := template.New(ListWordsPage).Funcs(template.FuncMap{"pinyin": PinyinFormatter}).ParseFiles("html/" + ListWordsPage)
 
 	if err != nil {
-		fmt.Println("Parse error " + err.Error())
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		httpErrorHandler(rw, err)
 		return
 	}
+
 	err = t.Execute(rw, cards)
+
 	if err != nil {
-		fmt.Println("Execute error " + err.Error())
-		http.Error(rw, err.Error(), http.StatusInternalServerError)
+		httpErrorHandler(rw, err)
 		return
 	}
 }
 
+func httpErrorHandler(rw http.ResponseWriter, err error) {
+	http.Error(rw, err.Error(), http.StatusInternalServerError)
+}
+
 func checkError(err error) {
 	if err != nil {
-		fmt.Println("Fatal error ", err.Error())
-		os.Exit(1)
+		log.Fatalln("Fatal error ", err.Error())
 	}
 }

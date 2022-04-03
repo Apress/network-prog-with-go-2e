@@ -3,6 +3,7 @@ package main
 import (
 	//	"fmt"
 	"encoding/json"
+	"io"
 	"os"
 	"sort"
 )
@@ -20,21 +21,18 @@ type FlashCards struct {
 	Cards     []*FlashCard
 }
 
-func LoadJSON(fileName string, key interface{}) {
-	inFile, err := os.Open(fileName)
+func LoadJSON(r io.Reader, key any) {
+	decoder := json.NewDecoder(r)
+	err := decoder.Decode(key)
 	checkError(err)
-	decoder := json.NewDecoder(inFile)
-	err = decoder.Decode(key)
-	checkError(err)
-	inFile.Close()
 }
 
 func ListFlashCardsNames() []string {
-	flashcardsDir, err := os.Open("flashcardsets")
+	flashCardsDir, err := os.Open("flashcardsets")
 	if err != nil {
 		return nil
 	}
-	files, err := flashcardsDir.Readdir(-1)
+	files, err := flashCardsDir.Readdir(-1)
 
 	fileNames := make([]string, len(files))
 	for n, f := range files {

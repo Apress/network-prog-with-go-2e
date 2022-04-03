@@ -5,7 +5,7 @@ import (
 	"strings"
 )
 
-func PinyinFormatter(args ...interface{}) string {
+func PinyinFormatter(args ...any) string {
 	ok := false
 	var s string
 	if len(args) == 1 {
@@ -109,7 +109,7 @@ func addAccent(word string, tone int) string {
 				length := len(chars)
 				// put tone onthe last vowel
 			L:
-				for n, _ := range chars {
+				for n := range chars {
 					m := length - n - 1
 					switch chars[m] {
 					case 'i':
