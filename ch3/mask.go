@@ -12,7 +12,7 @@ import (
 
 func main() {
 	if len(os.Args) != 4 {
-		log.Fatalln("Usage: %s dotted-ip-addr ones bits\n", os.Args[0])
+		log.Fatalf("Usage: %s dotted-ip-addr ones bits\n", os.Args[0])
 	}
 	dotAddr := os.Args[1]
 	ones, _ := strconv.Atoi(os.Args[2])
