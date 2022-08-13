@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		log.Fatalln("Usage: %s hostname\n", os.Args[0])
+		log.Fatalf("Usage: %s hostname\n", os.Args[0])
 	}
 	name := os.Args[1]
 	cname, _ := net.LookupCNAME(name)
