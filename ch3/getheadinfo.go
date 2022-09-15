@@ -12,7 +12,7 @@ import (
 
 func main() {
 	if len(os.Args) != 2 {
-		log.Fatalln("Usage: %s host:port ", os.Args[0])
+		log.Fatalf("Usage: %s host:port ", os.Args[0])
 	}
 	service := os.Args[1]
 	tcpAddr, err := net.ResolveTCPAddr("tcp4", service)
@@ -27,6 +27,6 @@ func main() {
 }
 func checkError(err error) {
 	if err != nil {
-		log.Fatalln("Fatal error: %s", err.Error())
+		log.Fatalf("Fatal error: %s", err.Error())
 	}
 }

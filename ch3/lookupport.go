@@ -11,7 +11,7 @@ import (
 
 func main() {
 	if len(os.Args) != 3 {
-		log.Fatalln("Usage: %s network-type service\n", os.Args[0])
+		log.Fatalf("Usage: %s network-type service\n", os.Args[0])
 	}
 	networkType := os.Args[1]
 	service := os.Args[2]
